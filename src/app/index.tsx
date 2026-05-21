@@ -1,7 +1,9 @@
 import { AntDesign } from "@expo/vector-icons";
+import * as Google from "expo-auth-session/providers/google";
 import { useRouter } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import LottieView from "lottie-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dimensions,
   ScrollView,
@@ -10,8 +12,19 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useAuthStore } from "../../store/useAuthStore";
+
+// Required to ensure the popup modal closes cleanly after authentication completes
+WebBrowser.maybeCompleteAuthSession();
 
 const { width, height } = Dimensions.get("window");
+
+const WEB_CLIENT_ID =
+  "771317023922-v42qev0orgk96tm7oqoigfhehobstdp6.apps.googleusercontent.com";
+const IOS_CLIENT_ID =
+  "771317023922-kf4k37vaod0q01e24k1kogl1g564fo0s.apps.googleusercontent.com";
+const ANDROID_CLIENT_ID =
+  "771317023922-rbo18ftat5ae7enukm1fn4lakktckufd.apps.googleusercontent.com";
 
 const slides = [
   {
@@ -39,9 +52,51 @@ const slides = [
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const router = useRouter();
+  const loginGlobal = useAuthStore((state) => state.login);
 
-  const handleLogin = () => {
-    router.replace("/(tabs)");
+  const redirectUri = "https://auth.expo.io/@your-username/droproom-mobile";
+  // Initialize the Google Auth Request Hook
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId: WEB_CLIENT_ID,
+    iosClientId: IOS_CLIENT_ID,
+    androidClientId: ANDROID_CLIENT_ID,
+    redirectUri: redirectUri,
+  });
+
+  // Listen for the authentication response from the secure browser modal
+  useEffect(() => {
+    if (response?.type === "success" && response.authentication?.accessToken) {
+      fetchGoogleUserInfo(response.authentication.accessToken);
+    }
+  }, [response]);
+
+  // Fetch the actual user profile data from Google using the secure access token
+  const fetchGoogleUserInfo = async (token: string) => {
+    try {
+      const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const googleData = await res.json();
+
+      // Formulate the user payload ensuring absolute compatibility with backend expectations
+      // We explicitly map the identifier to the 'username' field to avoid core schema mismatches
+      const formattedUser = {
+        username: googleData.email.split("@")[0], // Generates a clean fallback username from email prefix
+        email: googleData.email,
+        profilePic: googleData.picture,
+      };
+
+      // Mock JWT token for client-side routing verification before backend integration
+      const mockJwt = "mock_production_jwt_token";
+
+      // Save data globally to the Zustand store
+      loginGlobal(formattedUser, mockJwt);
+
+      // Route smoothly into the primary tab layout
+      router.replace("/(tabs)");
+    } catch (error) {
+      console.error("Failed fetching user info from Google:", error);
+    }
   };
 
   return (
@@ -88,11 +143,13 @@ export default function OnboardingScreen() {
         ))}
       </View>
 
+      {/* Interactive Google Login Button */}
       {currentIndex === slides.length - 1 && (
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.googleButton}
-            onPress={handleLogin}
+            disabled={!request}
+            onPress={() => promptAsync()}
             activeOpacity={0.8}
           >
             <AntDesign
