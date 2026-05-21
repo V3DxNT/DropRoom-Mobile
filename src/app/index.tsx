@@ -64,31 +64,44 @@ export default function OnboardingScreen() {
   });
 
   useEffect(() => {
-    if (response?.type === "success" && response.authentication?.accessToken) {
-      fetchGoogleUserInfo(response.authentication.accessToken);
+    if (response?.type === "success" && response.authentication?.idToken) {
+      authenticateWithBackend(response.authentication.idToken);
     }
   }, [response]);
-
-  const fetchGoogleUserInfo = async (token: string) => {
+  const authenticateWithBackend = async (idToken: string) => {
     try {
-      const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const googleData = await res.json();
+      console.log("🟡 Sending idToken to AWS...");
 
-      const formattedUser = {
-        username: googleData.email.split("@")[0],
-        email: googleData.email,
-        profilePic: googleData.picture,
-      };
+      const backendResponse = await fetch(
+        "http://3.110.85.35:7777/api/auth/google",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken: idToken }),
+        },
+      );
+      const rawText = await backendResponse.text();
+      console.log("RAW BACKEND RESPONSE:", rawText);
 
-      const mockJwt = "mock_production_jwt_token";
+      const backendData = JSON.parse(rawText);
 
-      loginGlobal(formattedUser, mockJwt);
+      if (backendData.success) {
+        console.log("🟢 Authentication Complete!");
 
-      router.replace("/(tabs)");
+        const formattedUser = {
+          username: backendData.username,
+          email: backendData.email,
+          profilePic: backendData.profilePicUrl,
+        };
+
+        loginGlobal(formattedUser, backendData.token);
+
+        router.replace("/(tabs)");
+      } else {
+        console.error("Backend rejected login:", backendData);
+      }
     } catch (error) {
-      console.error("Failed fetching user info from Google:", error);
+      console.error("🔴 FAILED TO REACH AWS BACKEND:", error);
     }
   };
 
