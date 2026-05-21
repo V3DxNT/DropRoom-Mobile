@@ -3,7 +3,7 @@ import * as Google from "expo-auth-session/providers/google";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import LottieView from "lottie-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Dimensions,
   ScrollView,
@@ -63,9 +63,18 @@ export default function OnboardingScreen() {
     // redirectUri: redirectUri,
   });
 
+  const lastProcessedToken = useRef<string | null>(null);
   useEffect(() => {
     if (response?.type === "success" && response.authentication?.idToken) {
       authenticateWithBackend(response.authentication.idToken);
+      const incomingToken = response.authentication.idToken;
+      // 2. Only authenticate if this is a BRAND NEW token we haven't seen before
+      if (lastProcessedToken.current !== incomingToken) {
+        lastProcessedToken.current = incomingToken; // Save it to memory
+        authenticateWithBackend(incomingToken);     // Fire the AWS login
+      } else {
+        console.log("👻 Ghost login prevented!");
+      }
     }
   }, [response]);
   const authenticateWithBackend = async (idToken: string) => {
