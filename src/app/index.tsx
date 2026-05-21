@@ -54,23 +54,21 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const loginGlobal = useAuthStore((state) => state.login);
 
-  const redirectUri = "https://auth.expo.io/@your-username/droproom-mobile";
-  // Initialize the Google Auth Request Hook
+  const redirectUri = "https://auth.expo.io/@v3d4nt/droproom-mobile";
   const [request, response, promptAsync] = Google.useAuthRequest({
+    // clientId:WEB_CLIENT_ID,
     webClientId: WEB_CLIENT_ID,
     iosClientId: IOS_CLIENT_ID,
     androidClientId: ANDROID_CLIENT_ID,
-    redirectUri: redirectUri,
+    // redirectUri: redirectUri,
   });
 
-  // Listen for the authentication response from the secure browser modal
   useEffect(() => {
     if (response?.type === "success" && response.authentication?.accessToken) {
       fetchGoogleUserInfo(response.authentication.accessToken);
     }
   }, [response]);
 
-  // Fetch the actual user profile data from Google using the secure access token
   const fetchGoogleUserInfo = async (token: string) => {
     try {
       const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -78,21 +76,16 @@ export default function OnboardingScreen() {
       });
       const googleData = await res.json();
 
-      // Formulate the user payload ensuring absolute compatibility with backend expectations
-      // We explicitly map the identifier to the 'username' field to avoid core schema mismatches
       const formattedUser = {
-        username: googleData.email.split("@")[0], // Generates a clean fallback username from email prefix
+        username: googleData.email.split("@")[0],
         email: googleData.email,
         profilePic: googleData.picture,
       };
 
-      // Mock JWT token for client-side routing verification before backend integration
       const mockJwt = "mock_production_jwt_token";
 
-      // Save data globally to the Zustand store
       loginGlobal(formattedUser, mockJwt);
 
-      // Route smoothly into the primary tab layout
       router.replace("/(tabs)");
     } catch (error) {
       console.error("Failed fetching user info from Google:", error);

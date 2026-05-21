@@ -1,14 +1,16 @@
 {
   "expo": {
-    "name": "DropRoom-Mobile",
-    "slug": "DropRoom-Mobile",
+    "owner": "v3d4nt",
+    "name": "Drop Room",
+    "slug": "droproom-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "droproom",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.v3d4nt.droproom-mobile"
     },
     "android": {
       "adaptiveIcon": {
