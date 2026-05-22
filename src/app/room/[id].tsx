@@ -5,7 +5,6 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
@@ -13,7 +12,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthStore } from "../../../store/useAuthStore";
+
+import ChatShimmer from "../../../components/ChatShimmer";
 
 interface Message {
   id: string;
@@ -29,6 +31,7 @@ export default function RoomScreen() {
 
   const { user, token } = useAuthStore();
 
+  const [loading, setLoading] = useState(true);
   const [inputText, setInputText] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -37,49 +40,105 @@ export default function RoomScreen() {
 
   useEffect(() => {
     if (!token) return;
-    
-    const wsUrl = `ws://3.110.85.35:7777/api/ws/${id}?token=${token}`;
-    ws.current = new WebSocket(wsUrl);
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch(
+          `http://3.110.85.35:7777/api/chat/history/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
 
-    ws.current.onopen = () => {
-      console.log("🟢 WEBSOCKET CONNECTED!");
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: "sys-1",
-          text: "Connected to server.",
-          sender: "system",
-          timestamp: "",
-        },
-      ]);
+        const data = await response.json();
+        const formattedMessages: Message[] = data
+          .filter((msg: any) => msg.messageText?.trim())
+          .map((msg: any, index: number) => ({
+            id: `${msg.timestamp}-${index}`,
+
+            text: msg.messageText,
+
+            sender: msg.senderUsername === user?.username ? "me" : "other",
+
+            username: msg.senderUsername || "Unknown",
+
+            timestamp: new Date(msg.timestamp).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          }));
+        setMessages(formattedMessages);
+      } catch (error) {
+        console.error("History fetch error:", error);
+      }
     };
+    const initializeRoom = async () => {
+      await fetchHistory();
+      setLoading(false);
 
-    ws.current.onmessage = (event) => {
-      console.log("🔵 Incoming Packet:", event.data);
-      const incomingData = JSON.parse(event.data);
+      const wsUrl = `ws://3.110.85.35:7777/api/ws/${id}?token=${token}`;
+      ws.current = new WebSocket(wsUrl);
 
-      const msgText = incomingData.MessageText || incomingData.messageText || incomingData.text || incomingData.Text || "";
-      const msgUsername = incomingData.SenderUsername || incomingData.senderUsername || incomingData.username || incomingData.Username || "Unknown";
-      
-      const msgId = incomingData.id || incomingData.Id || incomingData._id || Date.now().toString();
-
-      const incomingMessage: Message = {
-        id: msgId,
-        text: msgText,
-        sender: msgUsername === user?.username ? "me" : "other",
-        username: msgUsername,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+      ws.current.onopen = () => {
+        console.log("🟢 WEBSOCKET CONNECTED!");
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: "sys-1",
+            text: "Connected to server.",
+            sender: "system",
+            timestamp: "",
+          },
+        ]);
       };
 
-      setMessages((prev) => [...prev, incomingMessage]);
-    }
+      ws.current.onmessage = (event) => {
+        console.log("🔵 Incoming Packet:", event.data);
+        const incomingData = JSON.parse(event.data);
 
-    ws.current.onerror = (error) => {
-      console.error("🔴 WEBSOCKET ERROR:", error);
+        const msgText =
+          incomingData.messageText ||
+          incomingData.text ||
+          incomingData.Text ||
+          "";
+        const msgUsername =
+          incomingData.senderUsername ||
+          incomingData.username ||
+          incomingData.Username ||
+          "Unknown";
+
+        const msgId =
+          incomingData.id ||
+          incomingData.Id ||
+          incomingData._id ||
+          `${Date.now()}-${Math.random()}`;
+
+        const incomingMessage: Message = {
+          id: msgId,
+          text: msgText,
+          sender: msgUsername === user?.username ? "me" : "other",
+          username: msgUsername,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        };
+
+        if (msgText.trim()) {
+          setMessages((prev) => {
+            const exists = prev.some((m) => m.id === incomingMessage.id);
+            if (exists) return prev;
+            return [...prev, incomingMessage];
+          });
+        }
+      };
+
+      ws.current.onerror = (error) => {
+        console.error("🔴 WEBSOCKET ERROR:", error);
+      };
     };
+    initializeRoom();
 
     return () => {
       console.log("⚪ CLOSING WEBSOCKET");
@@ -87,21 +146,32 @@ export default function RoomScreen() {
     };
   }, [id, token]);
 
+  useEffect(() => {
+    if (messages.length > 0) {
+      requestAnimationFrame(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      });
+    }
+  }, [messages]);
+
   const handleLeaveRoom = () => {
     router.back();
   };
 
   const handleSendMessage = () => {
-    if (inputText.trim().length > 0 && ws.current) {
+    if (
+      inputText.trim().length > 0 &&
+      ws.current?.readyState === WebSocket.OPEN
+    ) {
       const payload = {
-        text: inputText.trim(),               
-        messageText: inputText.trim(),       
-        MessageText: inputText.trim(),       
-        username: user?.username,            
-        senderUsername: user?.username,      
-        SenderUsername: user?.username        
+        text: inputText.trim(),
+        messageText: inputText.trim(),
+        MessageText: inputText.trim(),
+        username: user?.username,
+        senderUsername: user?.username,
+        SenderUsername: user?.username,
       };
-      
+
       ws.current.send(JSON.stringify(payload));
       setInputText("");
     }
@@ -149,17 +219,21 @@ export default function RoomScreen() {
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
-      
-      <SafeAreaView style={styles.topSafeArea} />
-      
-      <SafeAreaView style={styles.bottomSafeArea}>
+
+      <SafeAreaView
+        style={styles.bottomSafeArea}
+        edges={["top", "left", "right"]}
+      >
         <KeyboardAvoidingView
-          style={styles.container}
+          style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
           {/* Top Navigation Bar */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={handleLeaveRoom} style={styles.backButton}>
+            <TouchableOpacity
+              onPress={handleLeaveRoom}
+              style={styles.backButton}
+            >
               <Feather name="chevron-left" size={28} color="#111827" />
             </TouchableOpacity>
             <View style={styles.headerTextContainer}>
@@ -172,8 +246,9 @@ export default function RoomScreen() {
             <View style={styles.headerSpacer} />
           </View>
 
-          {/* Chat Messages List */}
-          <View style={styles.chatAreaContainer}>
+          {loading ? (
+            <ChatShimmer />
+          ) : (
             <FlatList
               ref={flatListRef}
               data={messages}
@@ -181,10 +256,9 @@ export default function RoomScreen() {
               renderItem={renderMessage}
               contentContainerStyle={styles.chatList}
               showsVerticalScrollIndicator={false}
-              onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-              onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+              style={{ flex: 1 }}
             />
-          </View>
+          )}
 
           {/* Bottom Input Area */}
           <View style={styles.inputContainer}>
@@ -265,7 +339,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#10B981", 
+    backgroundColor: "#10B981",
     marginRight: 6,
   },
   statusText: {
@@ -274,7 +348,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   headerSpacer: {
-    width: 36, 
+    width: 36,
   },
   chatAreaContainer: {
     flex: 1,
@@ -283,6 +357,7 @@ const styles = StyleSheet.create({
   chatList: {
     padding: 16,
     paddingBottom: 24,
+    flexGrow: 1,
   },
   systemMessageContainer: {
     alignItems: "center",
@@ -360,6 +435,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#F3F4F6",
+    paddingBottom: Platform.OS === "android" ? 20 : 12,
+    elevation: 10,
   },
   textInput: {
     flex: 1,
@@ -370,7 +447,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     fontSize: 16,
     color: "#111827",
-    maxHeight: 100, 
+    maxHeight: 100,
   },
   sendButton: {
     backgroundColor: "#008080",
@@ -380,12 +457,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 12,
-    marginBottom: 2, 
+    marginBottom: 2,
   },
   sendButtonDisabled: {
     backgroundColor: "#D1D5DB",
   },
   sendIcon: {
-    marginLeft: 2, 
+    marginLeft: 2,
   },
 });
