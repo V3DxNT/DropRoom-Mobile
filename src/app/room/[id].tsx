@@ -146,14 +146,6 @@ export default function RoomScreen() {
     };
   }, [id, token]);
 
-  useEffect(() => {
-    if (messages.length > 0) {
-      requestAnimationFrame(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      });
-    }
-  }, [messages]);
-
   const handleLeaveRoom = () => {
     router.back();
   };
@@ -222,11 +214,11 @@ export default function RoomScreen() {
 
       <SafeAreaView
         style={styles.bottomSafeArea}
-        edges={["top", "left", "right"]}
+        edges={["top", "left", "right", "bottom"]}
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior="padding"
         >
           {/* Top Navigation Bar */}
           <View style={styles.header}>
@@ -246,19 +238,27 @@ export default function RoomScreen() {
             <View style={styles.headerSpacer} />
           </View>
 
-          {loading ? (
-            <ChatShimmer />
-          ) : (
-            <FlatList
-              ref={flatListRef}
-              data={messages}
-              keyExtractor={(item) => item.id}
-              renderItem={renderMessage}
-              contentContainerStyle={styles.chatList}
-              showsVerticalScrollIndicator={false}
-              style={{ flex: 1 }}
-            />
-          )}
+          <View style={styles.chatAreaContainer}>
+            {loading ? (
+              <ChatShimmer />
+            ) : (
+              <FlatList
+                ref={flatListRef}
+                data={messages}
+                keyExtractor={(item) => item.id}
+                renderItem={renderMessage}
+                contentContainerStyle={styles.chatList}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                onContentSizeChange={() =>
+                  flatListRef.current?.scrollToEnd({ animated: false })
+                }
+                onLayout={() =>
+                  flatListRef.current?.scrollToEnd({ animated: false })
+                }
+              />
+            )}
+          </View>
 
           {/* Bottom Input Area */}
           <View style={styles.inputContainer}>
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   },
   chatList: {
     padding: 16,
-    paddingBottom: 24,
+    paddingBottom: 10,
     flexGrow: 1,
   },
   systemMessageContainer: {
@@ -429,13 +429,13 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#F3F4F6",
-    paddingBottom: Platform.OS === "android" ? 20 : 12,
+    paddingBottom: Platform.OS === "ios" ? 14 : 10,
     elevation: 10,
   },
   textInput: {
@@ -457,7 +457,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 12,
-    marginBottom: 2,
   },
   sendButtonDisabled: {
     backgroundColor: "#D1D5DB",
