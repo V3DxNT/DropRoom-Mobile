@@ -1,9 +1,7 @@
 import { AntDesign } from "@expo/vector-icons";
-import * as Google from "expo-auth-session/providers/google";
 import { useRouter } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
 import LottieView from "lottie-react-native";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dimensions,
   ScrollView,
@@ -13,9 +11,7 @@ import {
   View,
 } from "react-native";
 import { useAuthStore } from "../../store/useAuthStore";
-
-// Required to ensure the popup modal closes cleanly after authentication completes
-WebBrowser.maybeCompleteAuthSession();
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const { width, height } = Dimensions.get("window");
 
@@ -23,8 +19,11 @@ const WEB_CLIENT_ID =
   "771317023922-v42qev0orgk96tm7oqoigfhehobstdp6.apps.googleusercontent.com";
 const IOS_CLIENT_ID =
   "771317023922-kf4k37vaod0q01e24k1kogl1g564fo0s.apps.googleusercontent.com";
-const ANDROID_CLIENT_ID =
-  "771317023922-rbo18ftat5ae7enukm1fn4lakktckufd.apps.googleusercontent.com";
+
+GoogleSignin.configure({
+  webClientId: WEB_CLIENT_ID,
+  iosClientId: IOS_CLIENT_ID,
+});
 
 const slides = [
   {
@@ -49,34 +48,44 @@ const slides = [
   },
 ];
 
+let globalLastProcessedToken: string | null = null;
+
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const router = useRouter();
-  const loginGlobal = useAuthStore((state) => state.login);
+  const { login: loginGlobal, token } = useAuthStore();
 
-  const redirectUri = "https://auth.expo.io/@v3d4nt/droproom-mobile";
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    // clientId:WEB_CLIENT_ID,
-    webClientId: WEB_CLIENT_ID,
-    iosClientId: IOS_CLIENT_ID,
-    androidClientId: ANDROID_CLIENT_ID,
-    // redirectUri: redirectUri,
-  });
-
-  const lastProcessedToken = useRef<string | null>(null);
   useEffect(() => {
-    if (response?.type === "success" && response.authentication?.idToken) {
-      authenticateWithBackend(response.authentication.idToken);
-      const incomingToken = response.authentication.idToken;
-      // 2. Only authenticate if this is a BRAND NEW token we haven't seen before
-      if (lastProcessedToken.current !== incomingToken) {
-        lastProcessedToken.current = incomingToken; // Save it to memory
-        authenticateWithBackend(incomingToken);     // Fire the AWS login
-      } else {
-        console.log("👻 Ghost login prevented!");
-      }
+    if (token) {
+      router.replace('/tabs');
     }
-  }, [response]);
+  }, [token]);
+
+  const handleNativeGoogleLogin = async () => {
+    try {
+      console.log("🟡 Starting Native Google Sign-In...");
+      await GoogleSignin.hasPlayServices();
+      
+      const response = await GoogleSignin.signIn();
+      console.log("🟢 RAW GOOGLE PAYLOAD:", JSON.stringify(response, null, 2));
+      
+      const idToken = response?.data?.idToken
+
+      if (idToken) {
+        if (globalLastProcessedToken !== idToken) {
+          globalLastProcessedToken = idToken; 
+          authenticateWithBackend(idToken);
+        } else {
+          console.log("👻 Ghost login prevented by Global Memory!");
+        }
+      } else {
+        console.error("🔴 No ID token returned from Google!");
+      }
+    } catch (error: any) {
+      console.error("🔴 Google Sign-In Error:", error);
+    }
+  };
+
   const authenticateWithBackend = async (idToken: string) => {
     try {
       console.log("🟡 Sending idToken to AWS...");
@@ -105,7 +114,7 @@ export default function OnboardingScreen() {
 
         loginGlobal(formattedUser, backendData.token);
 
-        router.replace("/(tabs)");
+        router.replace("/tabs");
       } else {
         console.error("Backend rejected login:", backendData);
       }
@@ -158,13 +167,12 @@ export default function OnboardingScreen() {
         ))}
       </View>
 
-      {/* Interactive Google Login Button */}
+      {/* 4. Update the Button to call handleNativeGoogleLogin */}
       {currentIndex === slides.length - 1 && (
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.googleButton}
-            disabled={!request}
-            onPress={() => promptAsync()}
+            onPress={handleNativeGoogleLogin}
             activeOpacity={0.8}
           >
             <AntDesign
@@ -189,7 +197,6 @@ const styles = StyleSheet.create({
   slide: {
     width,
     alignItems: "center",
-    // Pushed up from 0.15 to 0.10 to clear the dots
     paddingTop: height * 0.1,
   },
   animationContainer: {

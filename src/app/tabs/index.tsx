@@ -15,15 +15,12 @@ export default function LobbyScreen() {
   const [roomCode, setRoomCode] = useState<string>('');
   const router = useRouter();
   
-  // Pull the current user from your global state to greet them
   const user = useAuthStore((state) => state.user);
 
   const handleJoinRoom = () => {
     if (roomCode.trim().length > 0) {
-      // This will route them to a dynamic URL like /room/my-secret-chat
-      // (We will build that screen next!)
       router.push(`/room/${roomCode.trim()}`);
-      setRoomCode(''); // Clear the input after joining
+      setRoomCode('');
     }
   };
 

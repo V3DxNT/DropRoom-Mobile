@@ -1,20 +1,20 @@
+import { Feather, FontAwesome5 } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import LottieView from "lottie-react-native";
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   Image,
-  Linking,
-  SafeAreaView,
   LayoutAnimation,
+  Linking,
   Platform,
-  UIManager,
+  SafeAreaView,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  UIManager,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { Feather, FontAwesome5 } from "@expo/vector-icons";
-import LottieView from "lottie-react-native";
 import { useAuthStore } from "../../../store/useAuthStore";
 
 if (
@@ -30,11 +30,7 @@ export default function ProfileScreen() {
   const [isDevExpanded, setIsDevExpanded] = useState(false);
 
   const handleLogout = () => {
-    console.log("🚪 Logging out...");
     logout();
-    setTimeout(() => {
-      router.replace("/");
-    }, 100);
   };
 
   const toggleDevCard = () => {

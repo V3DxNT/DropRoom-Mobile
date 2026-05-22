@@ -6,7 +6,11 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "droproom",
+    "scheme": [
+      "droproom",
+      "com.v3d4nt.droproommobile",
+      "com.googleusercontent.apps.771317023922-kf4k37vaod0q01e24k1kogl1g564fo0s"
+    ],
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.v3d4nt.droproom-mobile",
@@ -32,6 +36,7 @@
     },
     "plugins": [
       "expo-router",
+     "@react-native-google-signin/google-signin",
       [
         "expo-splash-screen",
         {
@@ -42,7 +47,8 @@
           }
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true,
