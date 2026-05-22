@@ -2,15 +2,16 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useAuthStore } from "../../../store/useAuthStore";
 
@@ -32,10 +33,12 @@ export default function RoomScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const ws = useRef<WebSocket | null>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     if (!token) return;
-    const wsUrl = `ws://3.110.85.35:7777/ws/room/${id}?token=${token}`;
+    
+    const wsUrl = `ws://3.110.85.35:7777/api/ws/${id}?token=${token}`;
     ws.current = new WebSocket(wsUrl);
 
     ws.current.onopen = () => {
@@ -55,11 +58,16 @@ export default function RoomScreen() {
       console.log("🔵 Incoming Packet:", event.data);
       const incomingData = JSON.parse(event.data);
 
+      const msgText = incomingData.MessageText || incomingData.messageText || incomingData.text || incomingData.Text || "";
+      const msgUsername = incomingData.SenderUsername || incomingData.senderUsername || incomingData.username || incomingData.Username || "Unknown";
+      
+      const msgId = incomingData.id || incomingData.Id || incomingData._id || Date.now().toString();
+
       const incomingMessage: Message = {
-        id: incomingData.id || Date.now().toString(),
-        text: incomingData.text,
-        sender: incomingData.username === user?.username ? "me" : "other",
-        username: incomingData.username,
+        id: msgId,
+        text: msgText,
+        sender: msgUsername === user?.username ? "me" : "other",
+        username: msgUsername,
         timestamp: new Date().toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
@@ -67,7 +75,7 @@ export default function RoomScreen() {
       };
 
       setMessages((prev) => [...prev, incomingMessage]);
-    };
+    }
 
     ws.current.onerror = (error) => {
       console.error("🔴 WEBSOCKET ERROR:", error);
@@ -86,15 +94,18 @@ export default function RoomScreen() {
   const handleSendMessage = () => {
     if (inputText.trim().length > 0 && ws.current) {
       const payload = {
-        text: inputText.trim(),
-        username: user?.username,
+        text: inputText.trim(),               
+        messageText: inputText.trim(),       
+        MessageText: inputText.trim(),       
+        username: user?.username,            
+        senderUsername: user?.username,      
+        SenderUsername: user?.username        
       };
+      
       ws.current.send(JSON.stringify(payload));
-
       setInputText("");
     }
   };
-
   const renderMessage = ({ item }: { item: Message }) => {
     const isMe = item.sender === "me";
     const isSystem = item.sender === "system";
@@ -136,68 +147,83 @@ export default function RoomScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        {/* Top Navigation Bar */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleLeaveRoom} style={styles.backButton}>
-            <Feather name="chevron-left" size={28} color="#111827" />
-          </TouchableOpacity>
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.roomTitle}>Room: {id}</Text>
-            <View style={styles.statusContainer}>
-              <View style={styles.statusDot} />
-              <Text style={styles.statusText}>Live</Text>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      
+      <SafeAreaView style={styles.topSafeArea} />
+      
+      <SafeAreaView style={styles.bottomSafeArea}>
+        <KeyboardAvoidingView
+          style={styles.container}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          {/* Top Navigation Bar */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={handleLeaveRoom} style={styles.backButton}>
+              <Feather name="chevron-left" size={28} color="#111827" />
+            </TouchableOpacity>
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.roomTitle}>Room: {id}</Text>
+              <View style={styles.statusContainer}>
+                <View style={styles.statusDot} />
+                <Text style={styles.statusText}>Live</Text>
+              </View>
             </View>
+            <View style={styles.headerSpacer} />
           </View>
-          <View style={styles.headerSpacer} />
-        </View>
 
-        {/* Chat Messages List */}
-        <FlatList
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={renderMessage}
-          contentContainerStyle={styles.chatList}
-          showsVerticalScrollIndicator={false}
-        />
-
-        {/* Bottom Input Area */}
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Type a message..."
-            placeholderTextColor="#9CA3AF"
-            value={inputText}
-            onChangeText={setInputText}
-            multiline
-          />
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              !inputText.trim() && styles.sendButtonDisabled,
-            ]}
-            onPress={handleSendMessage}
-            disabled={!inputText.trim()}
-          >
-            <Ionicons
-              name="send"
-              size={18}
-              color="#FFFFFF"
-              style={styles.sendIcon}
+          {/* Chat Messages List */}
+          <View style={styles.chatAreaContainer}>
+            <FlatList
+              ref={flatListRef}
+              data={messages}
+              keyExtractor={(item) => item.id}
+              renderItem={renderMessage}
+              contentContainerStyle={styles.chatList}
+              showsVerticalScrollIndicator={false}
+              onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+              onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </View>
+
+          {/* Bottom Input Area */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Type a message..."
+              placeholderTextColor="#9CA3AF"
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+            />
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                !inputText.trim() && styles.sendButtonDisabled,
+              ]}
+              onPress={handleSendMessage}
+              disabled={!inputText.trim()}
+            >
+              <Ionicons
+                name="send"
+                size={18}
+                color="#FFFFFF"
+                style={styles.sendIcon}
+              />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  topSafeArea: {
+    flex: 0,
+    backgroundColor: "#000000", // Makes the notch/notification area black
+  },
+  bottomSafeArea: {
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
@@ -210,8 +236,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
+    elevation: 2, // Slight shadow for separation
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   backButton: {
     padding: 4,
@@ -233,7 +265,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#10B981", // Emerald green for connection status
+    backgroundColor: "#10B981", 
     marginRight: 6,
   },
   statusText: {
@@ -242,7 +274,11 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   headerSpacer: {
-    width: 36, // Balances the back button for absolute centering
+    width: 36, 
+  },
+  chatAreaContainer: {
+    flex: 1,
+    backgroundColor: "#FAFAFA", // Slight off-white to make the bubbles pop
   },
   chatList: {
     padding: 16,
@@ -253,12 +289,12 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   systemMessageText: {
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#E5E7EB",
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 16,
     fontSize: 12,
-    color: "#6B7280",
+    color: "#4B5563",
     overflow: "hidden",
   },
   messageWrapper: {
@@ -278,19 +314,27 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     marginBottom: 4,
     marginLeft: 4,
+    fontWeight: "500",
   },
   messageBubble: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+    elevation: 1,
   },
   messageBubbleMe: {
-    backgroundColor: "#008080", // Teal
+    backgroundColor: "#008080", // Teal primary
     borderBottomRightRadius: 4,
   },
   messageBubbleOther: {
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#FFFFFF", // Crisp white for contrast
     borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
   },
   messageText: {
     fontSize: 16,
@@ -303,7 +347,7 @@ const styles = StyleSheet.create({
     color: "#1F2937",
   },
   timestamp: {
-    fontSize: 11,
+    fontSize: 10,
     color: "#9CA3AF",
     marginTop: 4,
     marginHorizontal: 4,
@@ -313,22 +357,20 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     paddingHorizontal: 16,
     paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#F3F4F6",
-    backgroundColor: "#FFFFFF",
   },
   textInput: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
+    backgroundColor: "#F3F4F6",
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 12,
     fontSize: 16,
     color: "#111827",
-    maxHeight: 100, // Allows multiline to grow slightly then scroll
+    maxHeight: 100, 
   },
   sendButton: {
     backgroundColor: "#008080",
@@ -338,12 +380,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 12,
-    marginBottom: 2, // Aligns with the bottom of the input
+    marginBottom: 2, 
   },
   sendButtonDisabled: {
     backgroundColor: "#D1D5DB",
   },
   sendIcon: {
-    marginLeft: 2, // Minor visual adjustment to center the send arrow
+    marginLeft: 2, 
   },
 });

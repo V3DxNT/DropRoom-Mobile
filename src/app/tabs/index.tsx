@@ -9,7 +9,7 @@ import {
   Platform 
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuthStore } from '../../../store/useAuthStore'; // Double check this path!
+import { useAuthStore } from '../../../store/useAuthStore';
 
 export default function LobbyScreen() {
   const [roomCode, setRoomCode] = useState<string>('');
