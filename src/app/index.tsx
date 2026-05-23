@@ -1,8 +1,10 @@
 import { AntDesign } from "@expo/vector-icons";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Dimensions,
   ScrollView,
   StyleSheet,
@@ -11,7 +13,6 @@ import {
   View,
 } from "react-native";
 import { useAuthStore } from "../../store/useAuthStore";
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const { width, height } = Dimensions.get("window");
 
@@ -57,7 +58,7 @@ export default function OnboardingScreen() {
 
   useEffect(() => {
     if (token) {
-      router.replace('/tabs');
+      router.replace("/tabs");
     }
   }, [token]);
 
@@ -65,24 +66,28 @@ export default function OnboardingScreen() {
     try {
       console.log("🟡 Starting Native Google Sign-In...");
       await GoogleSignin.hasPlayServices();
-      
+
       const response = await GoogleSignin.signIn();
       console.log("🟢 RAW GOOGLE PAYLOAD:", JSON.stringify(response, null, 2));
-      
-      const idToken = response?.data?.idToken
+
+      const idToken = response?.data?.idToken;
 
       if (idToken) {
         if (globalLastProcessedToken !== idToken) {
-          globalLastProcessedToken = idToken; 
+          globalLastProcessedToken = idToken;
           authenticateWithBackend(idToken);
         } else {
+          Alert.alert("Backend Data is not coming!")
           console.log("👻 Ghost login prevented by Global Memory!");
         }
       } else {
+        Alert.alert(" Login Failed" );
         console.error("🔴 No ID token returned from Google!");
       }
     } catch (error: any) {
-      console.error("🔴 Google Sign-In Error:", error);
+      const errorMessage = error?.message || JSON.stringify(error) || "Unknown Error";
+      Alert.alert("Google Login Failed", errorMessage);
+      console.error("🔴 Google Sign-In Error:", errorMessage);
     }
   };
 

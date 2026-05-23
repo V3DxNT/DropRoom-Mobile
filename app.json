@@ -36,7 +36,7 @@
     },
     "plugins": [
       "expo-router",
-     "@react-native-google-signin/google-signin",
+      "@react-native-google-signin/google-signin",
       [
         "expo-splash-screen",
         {
@@ -48,10 +48,24 @@
         }
       ],
       "expo-web-browser",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f4a4f0b5-8d38-4022-938d-07be0285e592"
+      }
     }
   }
 }
