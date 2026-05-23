@@ -7,7 +7,6 @@ import {
   LayoutAnimation,
   Linking,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,6 +14,7 @@ import {
   UIManager,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthStore } from "../../../store/useAuthStore";
 
 if (
@@ -42,7 +42,10 @@ export default function ProfileScreen() {
   const openGithub = () => Linking.openURL("https://github.com/V3DxNT");
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+            style={styles.bottomSafeArea}
+            edges={["top", "left", "right", "bottom"]}
+          >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
@@ -178,7 +181,7 @@ export default function ProfileScreen() {
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+            </SafeAreaView>
   );
 }
 
@@ -240,7 +243,10 @@ const styles = StyleSheet.create({
     elevation: 4,
     overflow: "hidden",
   },
-
+  bottomSafeArea: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
   // --- NEW COMPACT STYLES ---
   compactCardView: {
     padding: 30,

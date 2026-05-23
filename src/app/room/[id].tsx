@@ -10,6 +10,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Image,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,6 +24,7 @@ interface Message {
   sender: "me" | "other" | "system";
   timestamp: string;
   username?: string;
+  profilePic?:string
 }
 
 export default function RoomScreen() {
@@ -56,13 +58,10 @@ export default function RoomScreen() {
           .filter((msg: any) => msg.messageText?.trim())
           .map((msg: any, index: number) => ({
             id: `${msg.timestamp}-${index}`,
-
             text: msg.messageText,
-
+            profilePic: msg.senderProfilePic,
             sender: msg.senderUsername === user?.username ? "me" : "other",
-
             username: msg.senderUsername || "Unknown",
-
             timestamp: new Date(msg.timestamp).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
@@ -114,11 +113,14 @@ export default function RoomScreen() {
           incomingData._id ||
           `${Date.now()}-${Math.random()}`;
 
+          const msgProfilePic = incomingData.senderProfilePic || incomingData.SenderProfilePic || "";
+
         const incomingMessage: Message = {
           id: msgId,
           text: msgText,
           sender: msgUsername === user?.username ? "me" : "other",
           username: msgUsername,
+          profilePic: msgProfilePic,
           timestamp: new Date().toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
@@ -179,6 +181,7 @@ export default function RoomScreen() {
         </View>
       );
     }
+  
 
     return (
       <View
@@ -188,25 +191,36 @@ export default function RoomScreen() {
         ]}
       >
         {!isMe && <Text style={styles.senderName}>@{item.username}</Text>}
-        <View
-          style={[
-            styles.messageBubble,
-            isMe ? styles.messageBubbleMe : styles.messageBubbleOther,
-          ]}
-        >
-          <Text
+        
+        {/* 👇 WRAP BUBBLE AND AVATAR IN A ROW */}
+        <View style={isMe ? styles.messageRowMe : styles.messageRowOther}>
+          
+          {!isMe && item.profilePic ? (
+            <Image source={{ uri: item.profilePic }} style={styles.avatar} />
+          ) : null}
+
+          <View
             style={[
-              styles.messageText,
-              isMe ? styles.messageTextMe : styles.messageTextOther,
+              styles.messageBubble,
+              isMe ? styles.messageBubbleMe : styles.messageBubbleOther,
             ]}
           >
-            {item.text}
-          </Text>
+            <Text
+              style={[
+                styles.messageText,
+                isMe ? styles.messageTextMe : styles.messageTextOther,
+              ]}
+            >
+              {item.text}
+            </Text>
+          </View>
+
         </View>
+
         <Text style={styles.timestamp}>{item.timestamp}</Text>
       </View>
     );
-  };
+  }
 
   return (
     <>
@@ -291,6 +305,7 @@ export default function RoomScreen() {
     </>
   );
 }
+
 
 const styles = StyleSheet.create({
   topSafeArea: {
@@ -463,5 +478,20 @@ const styles = StyleSheet.create({
   },
   sendIcon: {
     marginLeft: 2,
+  },
+  messageRowMe: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  messageRowOther: {
+    flexDirection: "row",
+    alignItems: "flex-end", 
+  },
+  avatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    marginRight: 8,
+    backgroundColor: "#E5E7EB",
   },
 });
