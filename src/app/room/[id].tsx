@@ -66,7 +66,7 @@ export default function RoomScreen() {
               hour: "2-digit",
               minute: "2-digit",
             }),
-          }));
+          })).reverse();
         setMessages(formattedMessages);
       } catch (error) {
         console.error("History fetch error:", error);
