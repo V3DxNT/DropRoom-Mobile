@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
@@ -10,7 +11,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -24,7 +24,7 @@ interface Message {
   sender: "me" | "other" | "system";
   timestamp: string;
   username?: string;
-  profilePic?:string
+  profilePic?: string;
 }
 
 export default function RoomScreen() {
@@ -66,7 +66,8 @@ export default function RoomScreen() {
               hour: "2-digit",
               minute: "2-digit",
             }),
-          })).reverse();
+          }))
+          .reverse();
         setMessages(formattedMessages);
       } catch (error) {
         console.error("History fetch error:", error);
@@ -80,7 +81,6 @@ export default function RoomScreen() {
       ws.current = new WebSocket(wsUrl);
 
       ws.current.onopen = () => {
-        console.log("🟢 WEBSOCKET CONNECTED!");
         setMessages((prev) => [
           ...prev,
           {
@@ -93,7 +93,6 @@ export default function RoomScreen() {
       };
 
       ws.current.onmessage = (event) => {
-        console.log("🔵 Incoming Packet:", event.data);
         const incomingData = JSON.parse(event.data);
 
         const msgText =
@@ -113,7 +112,8 @@ export default function RoomScreen() {
           incomingData._id ||
           `${Date.now()}-${Math.random()}`;
 
-          const msgProfilePic = incomingData.senderProfilePic || incomingData.SenderProfilePic || "";
+        const msgProfilePic =
+          incomingData.senderProfilePic || incomingData.SenderProfilePic || "";
 
         const incomingMessage: Message = {
           id: msgId,
@@ -137,13 +137,13 @@ export default function RoomScreen() {
       };
 
       ws.current.onerror = (error) => {
-        console.error("🔴 WEBSOCKET ERROR:", error);
+        console.error("WEBSOCKET ERROR:", error);
       };
     };
     initializeRoom();
 
     return () => {
-      console.log("⚪ CLOSING WEBSOCKET");
+      console.log("CLOSING WEBSOCKET");
       ws.current?.close();
     };
   }, [id, token]);
@@ -181,7 +181,6 @@ export default function RoomScreen() {
         </View>
       );
     }
-  
 
     return (
       <View
@@ -191,10 +190,8 @@ export default function RoomScreen() {
         ]}
       >
         {!isMe && <Text style={styles.senderName}>@{item.username}</Text>}
-        
-        {/* 👇 WRAP BUBBLE AND AVATAR IN A ROW */}
+
         <View style={isMe ? styles.messageRowMe : styles.messageRowOther}>
-          
           {!isMe && item.profilePic ? (
             <Image source={{ uri: item.profilePic }} style={styles.avatar} />
           ) : null}
@@ -214,13 +211,12 @@ export default function RoomScreen() {
               {item.text}
             </Text>
           </View>
-
         </View>
 
         <Text style={styles.timestamp}>{item.timestamp}</Text>
       </View>
     );
-  }
+  };
 
   return (
     <>
@@ -230,11 +226,7 @@ export default function RoomScreen() {
         style={styles.bottomSafeArea}
         edges={["top", "left", "right", "bottom"]}
       >
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior="padding"
-        >
-          {/* Top Navigation Bar */}
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
           <View style={styles.header}>
             <TouchableOpacity
               onPress={handleLeaveRoom}
@@ -274,7 +266,6 @@ export default function RoomScreen() {
             )}
           </View>
 
-          {/* Bottom Input Area */}
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.textInput}
@@ -306,11 +297,10 @@ export default function RoomScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
   topSafeArea: {
     flex: 0,
-    backgroundColor: "#000000", // Makes the notch/notification area black
+    backgroundColor: "#000000",
   },
   bottomSafeArea: {
     flex: 1,
@@ -328,7 +318,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
-    elevation: 2, // Slight shadow for separation
+    elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -367,7 +357,7 @@ const styles = StyleSheet.create({
   },
   chatAreaContainer: {
     flex: 1,
-    backgroundColor: "#FAFAFA", // Slight off-white to make the bubbles pop
+    backgroundColor: "#FAFAFA",
   },
   chatList: {
     padding: 16,
@@ -421,7 +411,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
   },
   messageBubbleOther: {
-    backgroundColor: "#FFFFFF", // Crisp white for contrast
+    backgroundColor: "#FFFFFF",
     borderBottomLeftRadius: 4,
     borderWidth: 1,
     borderColor: "#E5E7EB",
@@ -485,7 +475,7 @@ const styles = StyleSheet.create({
   },
   messageRowOther: {
     flexDirection: "row",
-    alignItems: "flex-end", 
+    alignItems: "flex-end",
   },
   avatar: {
     width: 28,

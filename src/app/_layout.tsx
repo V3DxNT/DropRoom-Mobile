@@ -17,7 +17,7 @@ export default function RootLayout() {
   useEffect(() => {
     const checkAuth = setTimeout(() => {
       if (!token) {
-        console.log("🛑 Auth Guard: No token found. Redirecting to login.");
+        console.log("No Existing Credentials");
         router.replace("/");
       }
     }, 30);

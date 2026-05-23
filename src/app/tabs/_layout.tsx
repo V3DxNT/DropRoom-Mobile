@@ -9,7 +9,6 @@ export default function TabLayout() {
 
   useEffect(() => {
     if (!token) {
-      console.log("🛑 Auth Guard: No token found. Redirecting to login.");
       router.replace("/");
     }
   }, [token]);

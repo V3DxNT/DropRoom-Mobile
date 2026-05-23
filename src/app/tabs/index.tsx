@@ -31,17 +31,15 @@ export default function LobbyScreen() {
     >
       <View style={styles.content}>
         
-        {/* Personalized Greeting */}
         <Text style={styles.greetingText}>
           Welcome back, <Text style={styles.usernameText}>@{user?.username || 'user'}</Text>
         </Text>
         
         <Text style={styles.title}>Where are we dropping?</Text>
         <Text style={styles.subtitle}>
-          Enter a room code below to instantly connect to a live WebSockets session.
+          Enter a room code below to instantly Connect.
         </Text>
 
-        {/* Massive Text Input for the Room Code */}
         <TextInput
           style={styles.input}
           placeholder="e.g. secret-room-42"
@@ -52,7 +50,6 @@ export default function LobbyScreen() {
           autoCorrect={false}
         />
 
-        {/* Dynamic Join Button */}
         <TouchableOpacity
           style={[styles.button, !roomCode.trim() && styles.buttonDisabled]}
           onPress={handleJoinRoom}

@@ -71,7 +71,6 @@ export default function ProfileScreen() {
             {user?.email || "No email attached"}
           </Text>
 
-          {/* ANIMATED RED DEVELOPER REVEAL CARD */}
           <View style={styles.brandingSection}>
             <Text style={styles.sectionLabel}>App Architect</Text>
 
@@ -81,10 +80,8 @@ export default function ProfileScreen() {
               activeOpacity={0.95}
             >
               {!isDevExpanded ? (
-                // --- NEW CENTERED COMPACT STATE WITH PULSE ---
                 <View style={styles.compactCardView}>
                   <View style={styles.pulseWrapper}>
-                    {/* The Lottie animation sits absolutely positioned BEHIND the avatar */}
                     <LottieView
                       source={require("../../../assets/animations/code-pulse.json")}
                       autoPlay
@@ -109,7 +106,7 @@ export default function ProfileScreen() {
                   <View style={styles.expandedHeader}>
                     <Text style={styles.expandedName}>Vedant Asthana</Text>
                     <Text style={styles.expandedHandle}>
-                      @V3DxNT • Full-Stack Developer
+                      • @V3DxNT • 
                     </Text>
                   </View>
 
@@ -166,7 +163,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* --- NEUTRAL LOGOUT BUTTON --- */}
         <TouchableOpacity
           style={styles.logoutButton}
           onPress={handleLogout}
@@ -260,7 +256,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 12,
   },
-  pulseAnimation: { position: "absolute", width: 180, height: 180, zIndex: 0 }, // Scales way past the avatar to create the aura
+  pulseAnimation: { position: "absolute", width: 180, height: 180, zIndex: 0 },
   compactAvatarPlaceholder: {
     width: 66,
     height: 66,
@@ -293,7 +289,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 
-  // --- EXPANDED STYLES ---
   expandedCardView: { padding: 24, alignItems: "center" },
   expandedHeader: { alignItems: "center", marginBottom: 16 },
   largeAvatarPlaceholder: {
@@ -363,7 +358,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // --- NEUTRAL LOGOUT BUTTON ---
   logoutButton: {
     flexDirection: "row",
     alignItems: "center",

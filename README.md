@@ -1,56 +1,74 @@
-# Welcome to your Expo app 👋
+# DropRoom Mobile & Backend
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+DropRoom is a high-performance, cross-platform, real-time messaging application featuring secure authentication, live chat rooms, and dynamic profile synchronizations. The ecosystem splits cleanly into a compiled, stateful Go WebSocket engine deployed on AWS and a highly responsive React Native mobile app built with Expo.
 
-## Get started
+---
 
-1. Install dependencies
+[![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](#) [![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)](#) [![Go](https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)](#) [![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white)](#) [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](#) [![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](#) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](#)
 
-   ```bash
-   npm install
-   ```
+DropRoom is not just a chat app; it is a demonstration of handling stateful, high-throughput real-time data across mobile clients. By moving away from standard BaaS platforms (like Firebase) and engineering a custom WebSocket pipeline in Go, DropRoom achieves minimal latency, extreme horizontal scalability, and seamless cross-platform native performance.
 
-2. Start the app
+## 📸 Application Preview
 
-   ```bash
-   npx expo start
-   ```
+> [!TIP]
+> Drop in, Chat , Drop Out
+> No Group Creating Hastle
+> Quick Chats
 
-In the output, you'll find options to open the app in a
+<p align="center">
+  <img src="./assets/readme/First.png" width="30%" alt="Google Authentication" />
+  <img src="./assets/readme/Second.png" width="30%" alt="Room Dashboard" />
+  <img src="./assets/readme/Third.png" width="30%" alt="Real-time Chat & Avatars" />
+</p>
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 🛠️ Tech Stack
 
-## Get a fresh project
+### Frontend (Mobile App)
 
-When you're ready, run:
+- **Framework:** React Native via **Expo** (Managed Workflow with Dev Clients)
+- **Routing:** Expo Router (File-based navigation with typed routes)
+- **State Management:** Zustand (Lightweight global authentication state)
+- **Authentication:** Native Google Sign-In (`@react-native-google-signin/google-signin`)
 
-```bash
-npm run reset-project
+### Backend (Distributed Engine)
+
+- **Language:** Go (Golang) 1.26
+- **Real-time Layer:** Gorilla WebSockets (Stateful connection hubs with concurrent write/read pumps)
+- **Relational Database:** Supabase PostgreSQL (User metadata and permanent profiles)
+- **Document Store:** MongoDB (High-throughput real-time message journaling and room history logs)
+- **Containerization:** Docker (Cross-compiled multi-stage containerization)
+- **Cloud Infrastructure:** AWS EC2 Virtual Instances
+
+---
+
+## 🏗️ Architecture & Core Mechanics
+
+```text
+   ┌─────────────────────────────────────────────────────────┐
+   │             React Native Mobile Client (Expo)           │
+   └────────────┬────────────────────────────────────▲───────┘
+                │ HTTP REST / OAuth                  │ WS Broadcast
+                ▼                                    │
+   ┌───────────────────────────────────┐    ┌────────┴────────┐
+   │          Supabase (PostgreSQL)    │    │ Go WS Hub Engine│
+   │      (Strict Relational Schema)   │    └────────▲────────┘
+   └───────────────────────────────────┘             │ Write/Read
+                                                     ▼
+                                            ┌─────────────────┐
+                                            │ MongoDB Cluster │
+                                            │(Document Stream)│
+                                            └─────────────────┘
+
+
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 👨‍💻 Developed By
 
-### Other setup steps
+### Vedant
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Portfolio: [Vedant](https://vedx.dev)
+- GitHub: [V3DxNT](https://github.com/V3DxNT)
+- YouTube: [@VedByte](https://youtube.com/@VedByte)
+- Discord: [v3dxnt](htpps://discord.com/users/v3dxnt)

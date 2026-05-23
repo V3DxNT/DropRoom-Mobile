@@ -64,11 +64,9 @@ export default function OnboardingScreen() {
 
   const handleNativeGoogleLogin = async () => {
     try {
-      console.log("🟡 Starting Native Google Sign-In...");
       await GoogleSignin.hasPlayServices();
 
       const response = await GoogleSignin.signIn();
-      console.log("🟢 RAW GOOGLE PAYLOAD:", JSON.stringify(response, null, 2));
 
       const idToken = response?.data?.idToken;
 
@@ -77,24 +75,19 @@ export default function OnboardingScreen() {
           globalLastProcessedToken = idToken;
           authenticateWithBackend(idToken);
         } else {
-          Alert.alert("Backend Data is not coming!")
-          console.log("👻 Ghost login prevented by Global Memory!");
+          Alert.alert("Wait!","Let The AWS BackEnd Breathe!")
         }
       } else {
         Alert.alert(" Login Failed" );
-        console.error("🔴 No ID token returned from Google!");
       }
     } catch (error: any) {
       const errorMessage = error?.message || JSON.stringify(error) || "Unknown Error";
-      Alert.alert("Google Login Failed", errorMessage);
-      console.error("🔴 Google Sign-In Error:", errorMessage);
+      console.error("Google Sign-In Error:", errorMessage);
     }
   };
 
   const authenticateWithBackend = async (idToken: string) => {
     try {
-      console.log("🟡 Sending idToken to AWS...");
-
       const backendResponse = await fetch(
         "http://3.110.85.35:7777/api/auth/google",
         {
@@ -109,8 +102,6 @@ export default function OnboardingScreen() {
       const backendData = JSON.parse(rawText);
 
       if (backendData.success) {
-        console.log("🟢 Authentication Complete!");
-
         const formattedUser = {
           username: backendData.username,
           email: backendData.email,
@@ -124,7 +115,7 @@ export default function OnboardingScreen() {
         console.error("Backend rejected login:", backendData);
       }
     } catch (error) {
-      console.error("🔴 FAILED TO REACH AWS BACKEND:", error);
+      console.error("FAILED TO REACH AWS BACKEND:", error);
     }
   };
 
@@ -159,7 +150,6 @@ export default function OnboardingScreen() {
         ))}
       </ScrollView>
 
-      {/* Pagination Dots */}
       <View style={styles.paginationContainer}>
         {slides.map((_, index) => (
           <View
@@ -172,7 +162,6 @@ export default function OnboardingScreen() {
         ))}
       </View>
 
-      {/* 4. Update the Button to call handleNativeGoogleLogin */}
       {currentIndex === slides.length - 1 && (
         <View style={styles.buttonContainer}>
           <TouchableOpacity
