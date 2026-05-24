@@ -38,13 +38,13 @@ const slides = [
     id: "2",
     title: "Lightning Fast",
     description:
-      "Powered by a custom Go WebSocket engine. Messages arrive instantly.",
+      "Powered by a custom Go WebSocket engine. Hosted on AWS. Messages arrive instantly.",
     animation: require("../../assets/animations/rocket.json"),
   },
   {
     id: "3",
     title: "Drop In. Chat. Drop Out.",
-    description: "Join anonymously or with your Google account. Ready?",
+    description: "Join & Drop-In with your Google account. Ready?",
     animation: require("../../assets/animations/stealth.json"),
   },
 ];

@@ -1,5 +1,4 @@
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import React, { useState } from "react";
 import {
@@ -25,7 +24,6 @@ if (
 }
 
 export default function ProfileScreen() {
-  const router = useRouter();
   const { user, logout } = useAuthStore();
   const [isDevExpanded, setIsDevExpanded] = useState(false);
 
@@ -43,9 +41,9 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView
-            style={styles.bottomSafeArea}
-            edges={["top", "left", "right", "bottom"]}
-          >
+      style={styles.bottomSafeArea}
+      edges={["top", "left", "right", "bottom"]}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
@@ -105,29 +103,31 @@ export default function ProfileScreen() {
                 <View style={styles.expandedCardView}>
                   <View style={styles.expandedHeader}>
                     <Text style={styles.expandedName}>Vedant Asthana</Text>
-                    <Text style={styles.expandedHandle}>
-                      • @V3DxNT • 
-                    </Text>
+                    <Text style={styles.expandedHandle}>• @V3DXNT •</Text>
                   </View>
 
                   <Text style={styles.bioText}>
                     Architecting scalable web infrastructure and real-time
-                    systems. Specializing in the MERN stack, Next.js, and
-                    high-performance backend routing.
+                    systems. Specializing in Event-Driven architectures,
+                    distributed Data Pipelines, and high-performance Backend
+                    Infrastructure.
                   </Text>
 
                   <View style={styles.techStackContainer}>
                     <View style={styles.techBadge}>
-                      <Text style={styles.techText}>React Native</Text>
+                      <Text style={styles.techText}>Java</Text>
+                    </View>
+                    <View style={styles.techBadge}>
+                      <Text style={styles.techText}>GoLang</Text>
                     </View>
                     <View style={styles.techBadge}>
                       <Text style={styles.techText}>TypeScript</Text>
                     </View>
                     <View style={styles.techBadge}>
-                      <Text style={styles.techText}>Go (Golang)</Text>
+                      <Text style={styles.techText}>Docker</Text>
                     </View>
                     <View style={styles.techBadge}>
-                      <Text style={styles.techText}>Next.js</Text>
+                      <Text style={styles.techText}>PostgreSQL</Text>
                     </View>
                     <View style={styles.techBadge}>
                       <Text style={styles.techText}>MongoDB</Text>
@@ -177,7 +177,7 @@ export default function ProfileScreen() {
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
-            </SafeAreaView>
+    </SafeAreaView>
   );
 }
 

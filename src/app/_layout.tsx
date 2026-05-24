@@ -10,9 +10,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 
 export default function RootLayout() {
   const { token } = useAuthStore();
-  const segments = useSegments();
   const router = useRouter();
-  const navigationState = useRootNavigationState();
 
   useEffect(() => {
     const checkAuth = setTimeout(() => {
