@@ -2,6 +2,8 @@
 
 DropRoom is a high-performance, cross-platform, real-time messaging application featuring secure authentication, live chat rooms, and dynamic profile synchronizations. The ecosystem splits cleanly into a compiled, stateful Go WebSocket engine deployed on AWS and a highly responsive React Native mobile app built with Expo.
 
+[Drop Room apk](https://drive.google.com/file/d/1SW5ySRE1wD5EnS7eEl0C6PII7GW2v-X2/view?usp=drive_link)
+
 ---
 
 [![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](#) [![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)](#) [![Go](https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)](#) [![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white)](#) [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](#) [![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](#) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](#)
